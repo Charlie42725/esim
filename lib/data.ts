@@ -3,6 +3,7 @@ export interface Country {
   name: string;
   flag: string;
   startingPrice: number;
+  continent: string;
   plans: Plan[];
 }
 
@@ -15,85 +16,8 @@ export interface Plan {
   popular?: boolean;
 }
 
-export const countries: Country[] = [
-  {
-    slug: "japan",
-    name: "日本",
-    flag: "🇯🇵",
-    startingPrice: 149,
-    plans: [
-      { id: "jp-3-1", name: "輕量方案", days: 3, data: "1GB", price: 149 },
-      { id: "jp-5-3", name: "標準方案", days: 5, data: "3GB", price: 249, popular: true },
-      { id: "jp-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 349 },
-      { id: "jp-10-u", name: "吃到飽", days: 10, data: "無限量", price: 499 },
-    ],
-  },
-  {
-    slug: "korea",
-    name: "韓國",
-    flag: "🇰🇷",
-    startingPrice: 129,
-    plans: [
-      { id: "kr-3-1", name: "輕量方案", days: 3, data: "1GB", price: 129 },
-      { id: "kr-5-3", name: "標準方案", days: 5, data: "3GB", price: 229, popular: true },
-      { id: "kr-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 329 },
-      { id: "kr-10-u", name: "吃到飽", days: 10, data: "無限量", price: 469 },
-    ],
-  },
-  {
-    slug: "thailand",
-    name: "泰國",
-    flag: "🇹🇭",
-    startingPrice: 99,
-    plans: [
-      { id: "th-3-1", name: "輕量方案", days: 3, data: "1GB", price: 99 },
-      { id: "th-5-3", name: "標準方案", days: 5, data: "3GB", price: 179, popular: true },
-      { id: "th-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 259 },
-      { id: "th-10-u", name: "吃到飽", days: 10, data: "無限量", price: 399 },
-    ],
-  },
-  {
-    slug: "vietnam",
-    name: "越南",
-    flag: "🇻🇳",
-    startingPrice: 89,
-    plans: [
-      { id: "vn-3-1", name: "輕量方案", days: 3, data: "1GB", price: 89 },
-      { id: "vn-5-3", name: "標準方案", days: 5, data: "3GB", price: 169, popular: true },
-      { id: "vn-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 239 },
-      { id: "vn-10-u", name: "吃到飽", days: 10, data: "無限量", price: 369 },
-    ],
-  },
-  {
-    slug: "singapore",
-    name: "新加坡",
-    flag: "🇸🇬",
-    startingPrice: 119,
-    plans: [
-      { id: "sg-3-1", name: "輕量方案", days: 3, data: "1GB", price: 119 },
-      { id: "sg-5-3", name: "標準方案", days: 5, data: "3GB", price: 219, popular: true },
-      { id: "sg-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 319 },
-    ],
-  },
-  {
-    slug: "malaysia",
-    name: "馬來西亞",
-    flag: "🇲🇾",
-    startingPrice: 99,
-    plans: [
-      { id: "my-3-1", name: "輕量方案", days: 3, data: "1GB", price: 99 },
-      { id: "my-5-3", name: "標準方案", days: 5, data: "3GB", price: 179, popular: true },
-      { id: "my-7-5", name: "暢遊方案", days: 7, data: "5GB", price: 259 },
-    ],
-  },
-];
-
-export function getCountryBySlug(slug: string): Country | undefined {
-  return countries.find((c) => c.slug === slug);
-}
-
 export function getFallbackCountries(): Country[] {
-  return countries;
+  return [];
 }
 
 export const faqItems = [

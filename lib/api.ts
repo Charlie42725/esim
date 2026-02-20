@@ -1,6 +1,7 @@
 import "server-only";
 import { config, isApiConfigured } from "./config";
 import { getFallbackCountries, type Country, type Plan } from "./data";
+import { getContinent, getCountryNameZh, detectMultiInfo, isMultiCountry } from "./continents";
 
 // --- API response types (matching weroam API docs) ---
 
@@ -170,30 +171,50 @@ function centsToNTD(usdCents: number): number {
   return Math.round((usdCents / 100) * USD_TO_NTD);
 }
 
+/** Generate a Chinese plan name from data + days, e.g. "3GB / 15天" */
+function formatPlanNameZh(dataStr: string, days: number): string {
+  return `${dataStr} / ${days}天`;
+}
+
 function mapProductsToCountries(products: ApiProduct[]): Country[] {
   const countryMap = new Map<string, Country>();
 
   for (const p of products) {
-    const region = p.region.toLowerCase();
-    const location = p.locationNetworkList?.[0];
-    const existing = countryMap.get(region);
+    const region = p.region;
+    const regionKey = region.toLowerCase();
+    const multi = isMultiCountry(regionKey);
 
+    const dataStr = formatDataBytes(p.dataBytes);
     const plan: Plan = {
       id: p.code,
-      name: p.name,
+      name: formatPlanNameZh(dataStr, p.duration.amount),
       days: p.duration.amount,
-      data: formatDataBytes(p.dataBytes),
+      data: dataStr,
       price: centsToNTD(p.retailPrice),
     };
+
+    // For multi-country: derive short slug from product name prefix
+    // e.g. "Asia (12 areas) 1GB 7Days" → "asia-12-areas"
+    const slug = multi
+      ? p.name.replace(/\s*\d+\s*(GB|MB|Day|day).*/i, "").trim()
+          .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "")
+      : regionKey;
+    const existing = countryMap.get(slug);
 
     if (existing) {
       existing.plans.push(plan);
     } else {
-      countryMap.set(region, {
-        slug: region,
-        name: location?.locationName || region.toUpperCase(),
-        flag: regionCodeToFlag(p.region),
+      const multiInfo = multi ? detectMultiInfo(p.name) : null;
+      const continent = multiInfo ? multiInfo.continent : getContinent(region);
+
+      countryMap.set(slug, {
+        slug,
+        name: multi
+          ? multiInfo!.nameZh
+          : getCountryNameZh(region),
+        flag: multi ? "🌍" : regionCodeToFlag(region),
         startingPrice: plan.price,
+        continent,
         plans: [plan],
       });
     }
@@ -210,15 +231,28 @@ function mapProductsToCountries(products: ApiProduct[]): Country[] {
 
 // --- Public data accessors (with fallback) ---
 
+async function fetchAllProducts(): Promise<ApiProduct[]> {
+  const all: ApiProduct[] = [];
+  let page = 1;
+  while (true) {
+    const res = await fetchProducts(undefined, page, 100);
+    if (!res.success || !res.data) break;
+    all.push(...res.data.products);
+    if (page >= res.data.pagination.totalPages) break;
+    page++;
+  }
+  return all;
+}
+
 export async function getCountries(): Promise<Country[]> {
   if (!isApiConfigured()) {
     return getFallbackCountries();
   }
 
   try {
-    const res = await fetchProducts();
-    if (res.success && res.data && res.data.products.length > 0) {
-      return mapProductsToCountries(res.data.products);
+    const products = await fetchAllProducts();
+    if (products.length > 0) {
+      return mapProductsToCountries(products);
     }
   } catch {
     // API unreachable — fall through to fallback

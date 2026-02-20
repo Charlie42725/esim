@@ -6,7 +6,12 @@
       "Bash(npx next build:*)",
       "Bash(fuser:*)",
       "Bash(curl:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(node -e:*)",
+      "Bash(source:*)",
+      "Bash(node scripts/analyze-api.mjs:*)",
+      "Bash(node scripts/check-continents.mjs:*)",
+      "Bash(kill:*)"
     ]
   }
 }

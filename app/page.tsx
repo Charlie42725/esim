@@ -1,7 +1,7 @@
 import { Search, Star, ArrowRight, Zap, Globe, Headphones, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Header from "./components/Header";
-import CountryCard from "./components/CountryCard";
+import RegionTabs from "./components/RegionTabs";
 import StepFlow from "./components/StepFlow";
 import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
@@ -88,11 +88,7 @@ export default async function Home() {
             <h2 className="font-heading font-semibold text-[22px] md:text-4xl text-text-primary text-center mb-8">
               熱門目的地
             </h2>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
-              {countries.map((country) => (
-                <CountryCard key={country.slug} country={country} />
-              ))}
-            </div>
+            <RegionTabs countries={countries} />
           </div>
         </section>
 
