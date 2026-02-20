@@ -38,7 +38,9 @@ export default async function Home() {
   return (
     <>
       <Header />
-      <StickyBottomCTA />
+      <Header />
+      {/* <StickyBottomCTA /> */}
+      <LineFloatingBtn />
       <LineFloatingBtn />
 
       <main>
