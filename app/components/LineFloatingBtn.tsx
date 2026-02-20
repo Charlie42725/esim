@@ -1,6 +1,6 @@
 import { MessageCircle } from "lucide-react";
 
-const LINE_URL = "https://line.me/ti/p/@esimgo";
+const LINE_URL = "https://line.me/ti/p/@roavaesim";
 
 export default function LineFloatingBtn() {
   return (

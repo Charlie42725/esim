@@ -9,7 +9,7 @@ export default function Footer() {
           <div>
             <div className="flex items-center gap-2 mb-3">
               <Wifi className="w-5 h-5 text-primary" />
-              <span className="font-heading font-bold text-lg">eSIM Go</span>
+              <span className="font-heading font-bold text-lg">Roava eSIM</span>
             </div>
             <p className="text-sm text-text-muted leading-relaxed">
               台灣出國旅客首選 eSIM 平台
@@ -38,7 +38,7 @@ export default function Footer() {
               <ul className="space-y-2 text-sm text-text-muted">
                 <li>
                   <a
-                    href="https://line.me/ti/p/@esimgo"
+                    href="https://line.me/ti/p/@roavaesim"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-white transition-colors cursor-pointer"
@@ -47,7 +47,7 @@ export default function Footer() {
                   </a>
                 </li>
                 <li>
-                  <a href="mailto:support@esimgo.tw" className="hover:text-white transition-colors cursor-pointer">
+                  <a href="mailto:support@roavaesim.tw" className="hover:text-white transition-colors cursor-pointer">
                     Email 聯繫
                   </a>
                 </li>
@@ -56,7 +56,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t border-white/10 text-xs text-text-muted text-center">
-          © 2026 eSIM Go. All rights reserved. | 統一編號：00000000
+          © 2026 Roava eSIM. All rights reserved. | 統一編號：00000000
         </div>
       </div>
     </footer>

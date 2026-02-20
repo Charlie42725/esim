@@ -193,7 +193,7 @@ export default function Home() {
             <p className="mt-4 text-sm text-text-secondary">
               有問題？
               <a
-                href="https://line.me/ti/p/@esimgo"
+                href="https://line.me/ti/p/@roavaesim"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary underline ml-1 cursor-pointer"

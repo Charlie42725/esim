@@ -136,7 +136,7 @@ function OrderCompleteContent() {
           <div className="border-t border-border-default pt-6 text-center">
             <p className="text-base text-text-secondary mb-3">有問題？</p>
             <a
-              href="https://line.me/ti/p/@esimgo"
+              href="https://line.me/ti/p/@roavaesim"
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center justify-center gap-2 w-full h-12 bg-line-green text-white font-bold rounded-xl hover:opacity-90 transition-opacity duration-200 cursor-pointer"

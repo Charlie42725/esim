@@ -8,12 +8,12 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "eSIM 出國上網 | 日韓泰越 3分鐘搞定",
+  title: "Roava eSIM | 出國上網 日韓泰越 3分鐘搞定",
   description:
-    "免換卡、掃碼即用。日本、韓國、泰國、越南 eSIM，NT$89 起。台灣出國旅客首選 eSIM 平台。",
+    "Roava eSIM — 免換卡、掃碼即用。日本、韓國、泰國、越南 eSIM，NT$89 起。台灣出國旅客首選 eSIM 平台。",
   openGraph: {
-    title: "eSIM 出國上網 | 日韓泰越 3分鐘搞定",
-    description: "免換卡、掃碼即用。日本、韓國、泰國、越南 eSIM，NT$89 起。",
+    title: "Roava eSIM | 出國上網 日韓泰越 3分鐘搞定",
+    description: "Roava eSIM — 免換卡、掃碼即用。日本、韓國、泰國、越南 eSIM，NT$89 起。",
     type: "website",
     locale: "zh_TW",
   },

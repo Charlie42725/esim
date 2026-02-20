@@ -10,7 +10,7 @@ export default function Header() {
         <Link href="/" className="flex items-center gap-2 cursor-pointer">
           <Wifi className="w-6 h-6 text-primary" />
           <span className="font-heading font-bold text-lg text-text-primary">
-            eSIM Go
+            Roava eSIM
           </span>
         </Link>
         <Link
