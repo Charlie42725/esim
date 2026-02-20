@@ -14,6 +14,9 @@ export interface Plan {
   data: string;
   price: number;
   popular?: boolean;
+  variant: "standard" | "nonhkip" | "iij" | "premium";
+  variantLabel: string;
+  variantDesc: string;
 }
 
 export function getFallbackCountries(): Country[] {

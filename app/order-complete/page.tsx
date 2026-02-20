@@ -82,7 +82,8 @@ function OrderCompleteContent() {
             {plan && country && (
               <>
                 <h2 className="font-heading font-semibold text-lg text-text-primary mb-1">
-                  {country.name} {plan.days}天 {plan.data} eSIM
+                  {country.name} {plan.days}天 {plan.data}
+                  {plan.variant && plan.variant !== "standard" && ` ${plan.variantLabel}`} eSIM
                 </h2>
                 <p className="text-sm text-text-muted">
                   訂單編號: #{orderId}

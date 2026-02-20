@@ -99,7 +99,7 @@ function CheckoutContent() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           productCode: plan.id,
-          productName: `${country.name} ${plan.data} ${plan.days}天 eSIM`,
+          productName: `${country.name} ${plan.data} ${plan.days}天${plan.variant !== "standard" ? ` ${plan.variantLabel}` : ""} eSIM`,
           amount: plan.price,
           email,
           countrySlug: country.slug,
@@ -170,6 +170,11 @@ function CheckoutContent() {
                 </h2>
                 <p className="text-sm text-text-secondary">
                   {plan.data} / {plan.days}天
+                  {plan.variant && plan.variant !== "standard" && (
+                    <span className="ml-1.5 text-xs text-primary font-medium">
+                      {plan.variantLabel}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>

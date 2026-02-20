@@ -179,6 +179,24 @@ function formatPlanNameZh(dataStr: string, days: number): string {
   return `${dataStr} / ${days}天`;
 }
 
+/** Detect variant type from product name */
+function detectVariant(productName: string): {
+  variant: "standard" | "nonhkip" | "iij" | "premium";
+  variantLabel: string;
+  variantDesc: string;
+} {
+  if (/\(nonhkip\)/i.test(productName)) {
+    return { variant: "nonhkip", variantLabel: "直連 IP", variantDesc: "當地 IP 出口，非香港中轉" };
+  }
+  if (/\(IIJ\)/i.test(productName)) {
+    return { variant: "iij", variantLabel: "IIJ 線路", variantDesc: "IIJ Docomo 網路" };
+  }
+  if (/premium/i.test(productName)) {
+    return { variant: "premium", variantLabel: "Premium 高速", variantDesc: "高速優質網路" };
+  }
+  return { variant: "standard", variantLabel: "標準線路", variantDesc: "經濟實惠" };
+}
+
 function mapProductsToCountries(products: ApiProduct[]): Country[] {
   const countryMap = new Map<string, Country>();
 
@@ -188,12 +206,16 @@ function mapProductsToCountries(products: ApiProduct[]): Country[] {
     const multi = isMultiCountry(regionKey);
 
     const dataStr = formatDataBytes(p.dataBytes);
+    const { variant, variantLabel, variantDesc } = detectVariant(p.name);
     const plan: Plan = {
       id: p.code,
       name: formatPlanNameZh(dataStr, p.duration.amount),
       days: p.duration.amount,
       data: dataStr,
       price: centsToNTD(p.retailPrice),
+      variant,
+      variantLabel,
+      variantDesc,
     };
 
     // For multi-country: derive short slug from product name prefix
