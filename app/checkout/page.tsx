@@ -201,7 +201,7 @@ function CheckoutContent() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-12 px-4 rounded-lg border border-border-default focus:border-primary text-base bg-base placeholder:text-text-muted transition-colors"
+                className="w-full h-12 px-4 rounded-lg border border-border-default focus:border-primary text-base text-text-primary bg-surface placeholder:text-text-muted transition-colors"
               />
               <p className="text-sm text-text-muted mt-1">
                 QR Code 會寄到此信箱
