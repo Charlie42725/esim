@@ -1,4 +1,4 @@
-import { Search, Star, ArrowRight, Zap, Globe, Headphones, ShieldCheck } from "lucide-react";
+import { Star, ArrowRight, Zap, Globe, Headphones, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Header from "./components/Header";
 import RegionTabs from "./components/RegionTabs";
@@ -53,17 +53,6 @@ export default async function Home() {
             <p className="text-base md:text-lg text-text-secondary mb-6 max-w-md mx-auto">
               免換卡・掃碼即用・日韓東南亞超過 50 國
             </p>
-
-            {/* Search box CTA — clicks scroll to real search */}
-            <Link
-              href="#search"
-              className="group flex items-center gap-3 w-full max-w-md mx-auto h-14 px-4 bg-surface rounded-xl border border-border-default hover:border-primary shadow-sm transition-all duration-200 cursor-pointer"
-            >
-              <Search className="w-5 h-5 text-text-muted group-hover:text-primary transition-colors" />
-              <span className="text-base text-text-muted">
-                你要去哪個國家？
-              </span>
-            </Link>
 
             {/* Trust signal */}
             <div className="flex items-center justify-center gap-2 mt-4 text-sm text-text-secondary">
