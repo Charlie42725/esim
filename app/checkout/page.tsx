@@ -1,10 +1,11 @@
 "use client";
 
-import { Suspense, useState, useEffect } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
-import { ArrowLeft, ArrowRight, Lock, CreditCard } from "lucide-react";
+import { Suspense, useState, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
+import { ArrowLeft, ArrowRight, Lock, ShieldCheck } from "lucide-react";
 import Link from "next/link";
 import Header from "@/app/components/Header";
+import FlagImage from "@/app/components/FlagImage";
 import type { Country } from "@/lib/data";
 
 export default function CheckoutPage() {
@@ -23,7 +24,6 @@ export default function CheckoutPage() {
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const planId = searchParams.get("plan") || "";
   const countrySlug = searchParams.get("country") || "";
 
@@ -45,12 +45,10 @@ function CheckoutContent() {
   const plan = country?.plans.find((p) => p.id === planId);
 
   const [email, setEmail] = useState("");
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvv, setCvv] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [error, setError] = useState("");
+  const formRef = useRef<HTMLFormElement>(null);
 
   if (loading) {
     return (
@@ -80,55 +78,57 @@ function CheckoutContent() {
     );
   }
 
-  const formatCardNumber = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 16);
-    return digits.replace(/(\d{4})(?=\d)/g, "$1 ");
-  };
-
-  const formatExpiry = (val: string) => {
-    const digits = val.replace(/\D/g, "").slice(0, 4);
-    if (digits.length >= 3) return digits.slice(0, 2) + "/" + digits.slice(2);
-    return digits;
-  };
-
-  const validate = () => {
-    const errs: Record<string, string> = {};
-    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errs.email = "請輸入有效的 Email";
-    }
-    if (cardNumber.replace(/\s/g, "").length !== 16) {
-      errs.card = "請輸入完整的卡號";
-    }
-    if (expiry.length !== 5) {
-      errs.expiry = "請輸入到期日";
-    }
-    if (cvv.length < 3) {
-      errs.cvv = "請輸入 CVV";
-    }
-    if (!agreed) {
-      errs.agree = "請同意服務條款";
-    }
-    setErrors(errs);
-    return Object.keys(errs).length === 0;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
+    setError("");
+
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      setError("請輸入有效的 Email");
+      return;
+    }
+    if (!agreed) {
+      setError("請同意服務條款");
+      return;
+    }
+
     setSubmitting(true);
+
     try {
-      const res = await fetch("/api/orders", {
+      const res = await fetch("/api/ecpay/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productCode: plan.id, quantity: 1, expectedPrice: plan.price, email }),
+        body: JSON.stringify({
+          productCode: plan.id,
+          productName: `${country.name} ${plan.data} ${plan.days}天 eSIM`,
+          amount: plan.price,
+          email,
+          countrySlug: country.slug,
+        }),
       });
+
       const result = await res.json();
-      const orderId = result.data?.order?.orderId || "";
-      router.push(
-        `/order-complete?plan=${plan.id}&country=${country.slug}&email=${encodeURIComponent(email)}&orderId=${orderId}`
-      );
+      if (!result.success) {
+        setError(result.error || "建立訂單失敗");
+        setSubmitting(false);
+        return;
+      }
+
+      // Auto-submit form to ECPay
+      const { action, fields } = result.data;
+      const form = document.createElement("form");
+      form.method = "POST";
+      form.action = action;
+      for (const [key, value] of Object.entries(fields)) {
+        const input = document.createElement("input");
+        input.type = "hidden";
+        input.name = key;
+        input.value = value as string;
+        form.appendChild(input);
+      }
+      document.body.appendChild(form);
+      form.submit();
     } catch {
-      setErrors({ submit: "付款失敗，請稍後再試" });
+      setError("系統錯誤，請稍後再試");
       setSubmitting(false);
     }
   };
@@ -155,6 +155,7 @@ function CheckoutContent() {
         </div>
 
         <form
+          ref={formRef}
           onSubmit={handleSubmit}
           className="max-w-lg mx-auto px-4 py-6 space-y-5"
           noValidate
@@ -162,15 +163,13 @@ function CheckoutContent() {
           {/* Order summary */}
           <div className="bg-surface rounded-2xl p-4 border border-border-default">
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-3xl" role="img" aria-label={country.name}>
-                {country.flag}
-              </span>
+              <FlagImage code={country.flag} name={country.name} size={36} />
               <div>
                 <h2 className="font-heading font-semibold text-base text-text-primary">
-                  {country.name} {plan.days}天 {plan.data} eSIM
+                  {country.name} eSIM
                 </h2>
                 <p className="text-sm text-text-secondary">
-                  {plan.name}
+                  {plan.data} / {plan.days}天
                 </p>
               </div>
             </div>
@@ -202,111 +201,25 @@ function CheckoutContent() {
                 placeholder="your@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={`w-full h-12 px-4 rounded-lg border text-base bg-base placeholder:text-text-muted transition-colors ${
-                  errors.email
-                    ? "border-error"
-                    : "border-border-default focus:border-primary"
-                }`}
+                className="w-full h-12 px-4 rounded-lg border border-border-default focus:border-primary text-base bg-base placeholder:text-text-muted transition-colors"
               />
-              {errors.email && (
-                <p className="text-sm text-error mt-1">{errors.email}</p>
-              )}
               <p className="text-sm text-text-muted mt-1">
                 QR Code 會寄到此信箱
               </p>
             </div>
           </div>
 
-          {/* Payment */}
-          <div className="bg-surface rounded-2xl p-4 border border-border-default space-y-3">
-            <h3 className="font-heading font-semibold text-base text-text-primary flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-primary" />
-              付款方式
-            </h3>
-
-            {/* Card number */}
-            <div>
-              <label
-                htmlFor="cardNumber"
-                className="block text-sm font-medium text-text-primary mb-1"
-              >
-                卡號
-              </label>
-              <input
-                id="cardNumber"
-                type="text"
-                inputMode="numeric"
-                autoComplete="cc-number"
-                placeholder="0000 0000 0000 0000"
-                value={cardNumber}
-                onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-                className={`w-full h-12 px-4 rounded-lg border text-base bg-base placeholder:text-text-muted transition-colors ${
-                  errors.card
-                    ? "border-error"
-                    : "border-border-default focus:border-primary"
-                }`}
-              />
-              {errors.card && (
-                <p className="text-sm text-error mt-1">{errors.card}</p>
-              )}
+          {/* Payment info */}
+          <div className="bg-surface rounded-2xl p-4 border border-border-default">
+            <div className="flex items-center gap-2 mb-2">
+              <ShieldCheck className="w-5 h-5 text-primary" />
+              <h3 className="font-heading font-semibold text-base text-text-primary">
+                付款方式
+              </h3>
             </div>
-
-            {/* Expiry + CVV row */}
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label
-                  htmlFor="expiry"
-                  className="block text-sm font-medium text-text-primary mb-1"
-                >
-                  到期日
-                </label>
-                <input
-                  id="expiry"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="cc-exp"
-                  placeholder="MM/YY"
-                  value={expiry}
-                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-                  className={`w-full h-12 px-4 rounded-lg border text-base bg-base placeholder:text-text-muted transition-colors ${
-                    errors.expiry
-                      ? "border-error"
-                      : "border-border-default focus:border-primary"
-                  }`}
-                />
-                {errors.expiry && (
-                  <p className="text-sm text-error mt-1">{errors.expiry}</p>
-                )}
-              </div>
-              <div>
-                <label
-                  htmlFor="cvv"
-                  className="block text-sm font-medium text-text-primary mb-1"
-                >
-                  CVV
-                </label>
-                <input
-                  id="cvv"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="cc-csc"
-                  placeholder="000"
-                  maxLength={4}
-                  value={cvv}
-                  onChange={(e) =>
-                    setCvv(e.target.value.replace(/\D/g, "").slice(0, 4))
-                  }
-                  className={`w-full h-12 px-4 rounded-lg border text-base bg-base placeholder:text-text-muted transition-colors ${
-                    errors.cvv
-                      ? "border-error"
-                      : "border-border-default focus:border-primary"
-                  }`}
-                />
-                {errors.cvv && (
-                  <p className="text-sm text-error mt-1">{errors.cvv}</p>
-                )}
-              </div>
-            </div>
+            <p className="text-sm text-text-secondary">
+              點擊下方按鈕後，將跳轉至綠界 ECPay 安全付款頁面，支援信用卡、ATM 轉帳、超商付款等多種方式。
+            </p>
           </div>
 
           {/* Agree */}
@@ -328,8 +241,10 @@ function CheckoutContent() {
               </a>
             </span>
           </label>
-          {errors.agree && (
-            <p className="text-sm text-error -mt-3">{errors.agree}</p>
+
+          {/* Error */}
+          {error && (
+            <p className="text-sm text-error text-center">{error}</p>
           )}
 
           {/* Submit */}
@@ -341,11 +256,11 @@ function CheckoutContent() {
             {submitting ? (
               <>
                 <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                處理中...
+                跳轉中...
               </>
             ) : (
               <>
-                確認付款 NT${plan.price}
+                前往付款 NT${plan.price}
                 <ArrowRight className="w-5 h-5" />
               </>
             )}
@@ -354,7 +269,7 @@ function CheckoutContent() {
           {/* Trust */}
           <div className="flex items-center justify-center gap-2 text-sm text-text-muted">
             <Lock className="w-4 h-4" />
-            <span>SSL 安全加密 | 付款安全處理</span>
+            <span>綠界 ECPay 安全加密付款</span>
           </div>
         </form>
       </main>
