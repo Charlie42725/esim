@@ -5,7 +5,7 @@ import RegionTabs from "./components/RegionTabs";
 import StepFlow from "./components/StepFlow";
 import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
-import StickyBottomCTA from "./components/StickyBottomCTA";
+// import StickyBottomCTA from "./components/StickyBottomCTA";
 import LineFloatingBtn from "./components/LineFloatingBtn";
 import { getCountries } from "@/lib/api";
 
