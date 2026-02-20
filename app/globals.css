@@ -26,22 +26,33 @@
 
 /* ===== Dark Mode Overrides ===== */
 .dark {
-  --color-primary: #38BDF8;      /* Sky 400 */
-  --color-primary-dark: #7DD3FC; /* Sky 300 */
-  --color-primary-light: #0C4A6E; /* Sky 900 */
-  
-  --color-cta: #FB923C;          /* Orange 400 */
-  --color-cta-hover: #F97316;    /* Orange 500 */
-  
-  --color-surface: #1E293B;      /* Slate 800 */
-  --color-base: #020617;         /* Slate 950 - Deeper black for OLED/Contrast */
-  
-  --color-text-primary: #F8FAFC; /* Slate 50 */
-  --color-text-secondary: #CBD5E1; /* Slate 300 */
-  --color-text-muted: #94A3B8;   /* Slate 400 */
-  
-  --color-border-default: #334155; /* Slate 700 */
-  
+  --color-primary: #38BDF8;
+  /* Sky 400 */
+  --color-primary-dark: #7DD3FC;
+  /* Sky 300 */
+  --color-primary-light: #082F49;
+  /* Sky 950 - Deep blue tint for hero gradient */
+
+  --color-cta: #FB923C;
+  /* Orange 400 */
+  --color-cta-hover: #F97316;
+  /* Orange 500 */
+
+  --color-surface: #18181B;
+  /* Zinc 900 - Standard dark surface */
+  --color-base: #09090B;
+  /* Zinc 950 - Rich black background */
+
+  --color-text-primary: #FAFAFA;
+  /* Zinc 50 - High contrast text */
+  --color-text-secondary: #A1A1AA;
+  /* Zinc 400 - Readable secondary text */
+  --color-text-muted: #71717A;
+  /* Zinc 500 - Muted text */
+
+  --color-border-default: #27272A;
+  /* Zinc 800 - Subtle borders */
+
   --color-success: #4ADE80;
   --color-error: #F87171;
   --color-line-green: #06C755;
@@ -67,7 +78,9 @@ body {
 }
 
 /* Prevent iOS zoom on input focus */
-input, select, textarea {
+input,
+select,
+textarea {
   font-size: 16px;
   color: var(--color-text-primary);
 }
@@ -92,9 +105,11 @@ input:-webkit-autofill:focus {
   background: #0F172A;
   color: #F1F5F9;
 }
+
 .footer-dark .footer-muted {
   color: #64748B;
 }
+
 .footer-dark .footer-dim {
   color: rgba(255, 255, 255, 0.8);
 }
@@ -104,12 +119,16 @@ input:-webkit-autofill:focus {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

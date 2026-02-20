@@ -21,7 +21,7 @@ export default function Header() {
           >
             安裝教學
           </Link>
-          <ThemeToggle />
+          {/* <ThemeToggle /> */}
         </div>
       </div>
     </header>
