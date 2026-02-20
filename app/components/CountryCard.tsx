@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Country } from "@/lib/data";
+import FlagImage from "./FlagImage";
 
 export default function CountryCard({ country }: { country: Country }) {
   return (
@@ -7,8 +8,8 @@ export default function CountryCard({ country }: { country: Country }) {
       href={`/country/${country.slug}`}
       className="group block bg-surface rounded-2xl p-4 border border-border-default hover:border-primary hover:shadow-md transition-all duration-200 cursor-pointer"
     >
-      <div className="text-4xl mb-2" role="img" aria-label={`${country.name}國旗`}>
-        {country.flag}
+      <div className="mb-2">
+        <FlagImage code={country.flag} name={country.name} size={40} />
       </div>
       <h3 className="font-heading font-semibold text-lg text-text-primary mb-1">
         {country.name}

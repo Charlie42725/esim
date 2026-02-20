@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { getCountries, getCountryBySlugFromApi } from "@/lib/api";
+import FlagImage from "@/app/components/FlagImage";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import LineFloatingBtn from "@/app/components/LineFloatingBtn";
@@ -44,8 +45,8 @@ export default async function CountryPage({
         {/* Country header */}
         <section className="px-4 py-8 bg-gradient-to-b from-primary-light to-base">
           <div className="max-w-6xl mx-auto text-center">
-            <div className="text-5xl mb-3" role="img" aria-label={`${country.name}國旗`}>
-              {country.flag}
+            <div className="flex justify-center mb-3">
+              <FlagImage code={country.flag} name={country.name} size={64} />
             </div>
             <h1 className="font-heading font-bold text-[28px] md:text-5xl text-text-primary mb-2">
               {country.name} eSIM

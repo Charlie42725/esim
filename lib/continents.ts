@@ -18,7 +18,7 @@ export const CONTINENT_TABS: { key: ContinentKey; label: string }[] = [
   { key: "oceania", label: "大洋洲" },
   { key: "middle-east", label: "中東" },
   { key: "africa", label: "非洲" },
-  { key: "multi", label: "跨區方案" },
+  { key: "multi", label: "套餐" },
 ];
 
 const COUNTRY_TO_CONTINENT: Record<string, ContinentKey> = {
@@ -158,43 +158,44 @@ export function getContinent(countryCode: string): ContinentKey {
   return COUNTRY_TO_CONTINENT[countryCode.toUpperCase()] ?? "asia";
 }
 
-/** Detect continent from multi-country product name prefix */
-const MULTI_COUNTRY_PREFIXES: [string, ContinentKey, string][] = [
-  // [english prefix, continent key, chinese name]
-  ["africa", "africa", "非洲"],
-  ["asia-20", "asia", "亞洲 20區"],
-  ["asia (20", "asia", "亞洲 20區"],
-  ["asia (12", "asia", "亞洲 12區"],
-  ["asia (7", "asia", "亞洲 7區"],
-  ["asia", "asia", "亞洲"],
-  ["australia & new zealand", "oceania", "澳紐"],
-  ["balkans", "europe", "巴爾幹"],
-  ["caribbean", "americas", "加勒比海"],
-  ["central asia", "asia", "中亞"],
-  ["china (mainland hk macao)", "asia", "中港澳"],
-  ["china mainland & japan & south korea", "asia", "中日韓"],
-  ["europe (40+", "europe", "歐洲 40區+"],
-  ["europe(30+", "europe", "歐洲 30區+"],
-  ["europe", "europe", "歐洲"],
-  ["gcc", "middle-east", "海灣六國"],
-  ["global139", "multi", "全球 139區"],
-  ["global (120+", "multi", "全球 120區+"],
-  ["global", "multi", "全球"],
-  ["gulf region", "middle-east", "波斯灣"],
-  ["middle east & north africa", "middle-east", "中東北非"],
-  ["middle east", "middle-east", "中東"],
-  ["north america", "americas", "北美"],
-  ["singapore & malaysia & thailand", "asia", "新馬泰"],
-  ["south america", "americas", "南美"],
-  ["usa & canada", "americas", "美加"],
-  ["world", "multi", "全球"],
+/** Detect multi-country product name prefix → Chinese name.
+ *  All multi-country products go to "multi" (套餐) tab. */
+const MULTI_COUNTRY_PREFIXES: [string, string][] = [
+  // [english prefix, chinese name]
+  ["singapore & malaysia & thailand", "新馬泰"],
+  ["china mainland & japan & south korea", "中日韓"],
+  ["china (mainland hk macao)", "中港澳"],
+  ["usa & canada", "美加"],
+  ["australia & new zealand", "澳紐"],
+  ["north america", "北美"],
+  ["asia-20", "亞洲 20區"],
+  ["asia (20", "亞洲 20區"],
+  ["asia (12", "亞洲 12區"],
+  ["asia (7", "亞洲 7區"],
+  ["asia", "亞洲"],
+  ["europe (40+", "歐洲 40區+"],
+  ["europe(30+", "歐洲 30區+"],
+  ["europe", "歐洲"],
+  ["balkans", "巴爾幹"],
+  ["central asia", "中亞"],
+  ["gcc", "海灣六國"],
+  ["gulf region", "波斯灣"],
+  ["middle east & north africa", "中東北非"],
+  ["middle east", "中東"],
+  ["south america", "南美"],
+  ["caribbean", "加勒比海"],
+  ["africa", "非洲"],
+  ["global139", "全球 139區"],
+  ["global (120+", "全球 120區+"],
+  ["global", "全球"],
+  ["world", "全球"],
 ];
 
-/** Detect continent and Chinese name from a multi-country product name. */
+/** Detect Chinese name from a multi-country product name. Always returns continent "multi". */
 export function detectMultiInfo(productName: string): { continent: ContinentKey; nameZh: string } {
   const lower = productName.toLowerCase();
-  for (const [prefix, continent, nameZh] of MULTI_COUNTRY_PREFIXES) {
-    if (lower.startsWith(prefix)) return { continent, nameZh };
+  for (const [prefix, nameZh] of MULTI_COUNTRY_PREFIXES) {
+    if (lower.startsWith(prefix)) return { continent: "multi", nameZh };
   }
   return { continent: "multi", nameZh: "跨區" };
 }
@@ -202,4 +203,70 @@ export function detectMultiInfo(productName: string): { continent: ContinentKey;
 /** Check if a region string looks like multiple country codes (comma-separated) */
 export function isMultiCountry(region: string): boolean {
   return region.includes(",");
+}
+
+// --- Popularity sort (lower = more popular, shown first) ---
+// Based on Taiwan outbound travel patterns
+
+const COUNTRY_POPULARITY: Record<string, number> = {
+  // Top Asia destinations for Taiwanese travelers
+  JP: 1, KR: 2, TH: 3, VN: 4, SG: 5, MY: 6, PH: 7, ID: 8,
+  HK: 9, MO: 10, CN: 11, KH: 12, MM: 13, LA: 14, IN: 15,
+  MV: 16, LK: 17, NP: 18, BN: 19, BD: 20,
+  // Popular long-haul
+  US: 1, CA: 2, GB: 3, FR: 4, DE: 5, IT: 6, ES: 7, AU: 8, NZ: 9,
+  NL: 10, CH: 11, AT: 12, CZ: 13, PT: 14, GR: 15, TR: 16,
+  HR: 17, IS: 18, NO: 19, SE: 20, DK: 21, FI: 22, IE: 23,
+  BE: 24, HU: 25, PL: 26,
+  // Middle East
+  AE: 1, IL: 2, SA: 3, JO: 4, QA: 5, EG: 6, OM: 7, BH: 8, KW: 9,
+  // Americas beyond US/CA
+  MX: 3, BR: 4, AR: 5, CL: 6, PE: 7, CO: 8, CR: 9,
+  // Africa
+  ZA: 1, MA: 2, KE: 3, TZ: 4, NG: 6,
+};
+
+/** Multi-country package popularity (slug → order). Lower = shown first. */
+const PACKAGE_POPULARITY: Record<string, number> = {
+  // Small popular bundles first
+  "singapore-malaysia-thailand": 1,
+  "china-mainland-japan-south-korea": 2,
+  "china-mainland-hk-macao": 3,
+  "usa-canada": 4,
+  "australia-new-zealand": 5,
+  "north-america": 6,
+  // Regional Asia
+  "asia-7-areas": 10,
+  "asia-12-areas": 11,
+  "asia-20-areas": 12,
+  "asia-20": 13,
+  // Europe
+  "europe-30-areas": 20,
+  "europe-40-areas-morocco": 21,
+  "europe": 22,
+  "balkans-5-areas": 23,
+  // Middle East / Other
+  "gcc": 30,
+  "gulf-region": 31,
+  "middle-east": 32,
+  "middle-east-north-africa": 33,
+  "central-asia": 34,
+  // Americas
+  "south-america": 40,
+  "caribbean-20-areas": 41,
+  // Africa
+  "africa": 50,
+  // Global last
+  "global-120-areas": 90,
+  "global139": 91,
+};
+
+/** Get popularity rank for a single country (lower = more popular) */
+export function getCountryPopularity(countryCode: string): number {
+  return COUNTRY_POPULARITY[countryCode.toUpperCase()] ?? 999;
+}
+
+/** Get popularity rank for a multi-country package slug */
+export function getPackagePopularity(slug: string): number {
+  return PACKAGE_POPULARITY[slug] ?? 500;
 }

@@ -1,7 +1,10 @@
 import "server-only";
 import { config, isApiConfigured } from "./config";
 import { getFallbackCountries, type Country, type Plan } from "./data";
-import { getContinent, getCountryNameZh, detectMultiInfo, isMultiCountry } from "./continents";
+import {
+  getContinent, getCountryNameZh, detectMultiInfo, isMultiCountry,
+  getCountryPopularity, getPackagePopularity,
+} from "./continents";
 
 // --- API response types (matching weroam API docs) ---
 
@@ -212,7 +215,7 @@ function mapProductsToCountries(products: ApiProduct[]): Country[] {
         name: multi
           ? multiInfo!.nameZh
           : getCountryNameZh(region),
-        flag: multi ? "🌍" : regionCodeToFlag(region),
+        flag: multi ? "multi" : region.toLowerCase(),
         startingPrice: plan.price,
         continent,
         plans: [plan],
@@ -226,7 +229,20 @@ function mapProductsToCountries(products: ApiProduct[]): Country[] {
     country.startingPrice = country.plans[0].price;
   }
 
-  return Array.from(countryMap.values());
+  // Sort by popularity (single countries by travel popularity, packages by defined order)
+  const result = Array.from(countryMap.values());
+  result.sort((a, b) => {
+    const aIsMulti = a.continent === "multi";
+    const bIsMulti = b.continent === "multi";
+    if (aIsMulti && bIsMulti) {
+      return getPackagePopularity(a.slug) - getPackagePopularity(b.slug);
+    }
+    if (aIsMulti !== bIsMulti) return aIsMulti ? 1 : -1; // packages after countries
+    // Same continent: sort by popularity
+    return getCountryPopularity(a.slug.toUpperCase()) - getCountryPopularity(b.slug.toUpperCase());
+  });
+
+  return result;
 }
 
 // --- Public data accessors (with fallback) ---
