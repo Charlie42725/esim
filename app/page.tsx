@@ -7,7 +7,7 @@ import FAQ from "./components/FAQ";
 import Footer from "./components/Footer";
 import StickyBottomCTA from "./components/StickyBottomCTA";
 import LineFloatingBtn from "./components/LineFloatingBtn";
-import { countries } from "@/lib/data";
+import { getCountries } from "@/lib/api";
 
 const features = [
   {
@@ -32,7 +32,9 @@ const features = [
   },
 ];
 
-export default function Home() {
+export default async function Home() {
+  const countries = await getCountries();
+
   return (
     <>
       <Header />

@@ -4,7 +4,9 @@
       "Bash(python3:*)",
       "Bash(npm install:*)",
       "Bash(npx next build:*)",
-      "Bash(fuser:*)"
+      "Bash(fuser:*)",
+      "Bash(curl:*)",
+      "Bash(npm run build:*)"
     ]
   }
 }

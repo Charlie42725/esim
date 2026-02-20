@@ -92,6 +92,10 @@ export function getCountryBySlug(slug: string): Country | undefined {
   return countries.find((c) => c.slug === slug);
 }
 
+export function getFallbackCountries(): Country[] {
+  return countries;
+}
+
 export const faqItems = [
   {
     question: "什麼是 eSIM？",

@@ -1,12 +1,15 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { countries, getCountryBySlug } from "@/lib/data";
+import { getCountries, getCountryBySlugFromApi } from "@/lib/api";
 import Header from "@/app/components/Header";
 import Footer from "@/app/components/Footer";
 import LineFloatingBtn from "@/app/components/LineFloatingBtn";
 
-export function generateStaticParams() {
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  const countries = await getCountries();
   return countries.map((c) => ({ slug: c.slug }));
 }
 
@@ -16,7 +19,7 @@ export default async function CountryPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const country = getCountryBySlug(slug);
+  const country = await getCountryBySlugFromApi(slug);
   if (!country) notFound();
 
   return (

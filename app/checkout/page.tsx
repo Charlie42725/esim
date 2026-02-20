@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, Lock, CreditCard } from "lucide-react";
 import Link from "next/link";
 import Header from "@/app/components/Header";
-import { countries } from "@/lib/data";
+import type { Country } from "@/lib/data";
 
 export default function CheckoutPage() {
   return (
@@ -27,7 +27,21 @@ function CheckoutContent() {
   const planId = searchParams.get("plan") || "";
   const countrySlug = searchParams.get("country") || "";
 
-  const country = countries.find((c) => c.slug === countrySlug);
+  const [country, setCountry] = useState<Country | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const found = (res.data as Country[]).find((c) => c.slug === countrySlug);
+          setCountry(found || null);
+        }
+      })
+      .finally(() => setLoading(false));
+  }, [countrySlug]);
+
   const plan = country?.plans.find((p) => p.id === planId);
 
   const [email, setEmail] = useState("");
@@ -37,6 +51,17 @@ function CheckoutContent() {
   const [agreed, setAgreed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
+
+  if (loading) {
+    return (
+      <>
+        <Header />
+        <main className="pt-20 flex items-center justify-center min-h-screen bg-base">
+          <div className="w-8 h-8 border-3 border-primary/30 border-t-primary rounded-full animate-spin" />
+        </main>
+      </>
+    );
+  }
 
   if (!country || !plan) {
     return (
@@ -91,11 +116,21 @@ function CheckoutContent() {
     e.preventDefault();
     if (!validate()) return;
     setSubmitting(true);
-    // Simulate payment
-    await new Promise((r) => setTimeout(r, 1500));
-    router.push(
-      `/order-complete?plan=${plan.id}&country=${country.slug}&email=${encodeURIComponent(email)}`
-    );
+    try {
+      const res = await fetch("/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productCode: plan.id, quantity: 1, expectedPrice: plan.price, email }),
+      });
+      const result = await res.json();
+      const orderId = result.data?.order?.orderId || "";
+      router.push(
+        `/order-complete?plan=${plan.id}&country=${country.slug}&email=${encodeURIComponent(email)}&orderId=${orderId}`
+      );
+    } catch {
+      setErrors({ submit: "付款失敗，請稍後再試" });
+      setSubmitting(false);
+    }
   };
 
   return (

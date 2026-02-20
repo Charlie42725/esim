@@ -1,11 +1,11 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, ArrowRight, Download, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Header from "@/app/components/Header";
-import { countries } from "@/lib/data";
+import type { Country } from "@/lib/data";
 
 export default function OrderCompletePage() {
   return (
@@ -26,11 +26,24 @@ function OrderCompleteContent() {
   const planId = searchParams.get("plan") || "";
   const countrySlug = searchParams.get("country") || "";
   const email = searchParams.get("email") || "";
+  const orderIdParam = searchParams.get("orderId") || "";
 
-  const country = countries.find((c) => c.slug === countrySlug);
+  const [country, setCountry] = useState<Country | null>(null);
+
+  useEffect(() => {
+    fetch("/api/products")
+      .then((r) => r.json())
+      .then((res) => {
+        if (res.success && res.data) {
+          const found = (res.data as Country[]).find((c) => c.slug === countrySlug);
+          setCountry(found || null);
+        }
+      });
+  }, [countrySlug]);
+
   const plan = country?.plans.find((p) => p.id === planId);
 
-  const orderId = `ES${Date.now().toString().slice(-10)}`;
+  const orderId = orderIdParam || `ES${Date.now().toString().slice(-10)}`;
 
   return (
     <>
