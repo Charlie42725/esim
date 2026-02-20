@@ -43,7 +43,7 @@ export default async function Home() {
 
       <main>
         {/* ===== Section 1: Hero ===== */}
-        <section className="pt-20 pb-12 px-4 bg-gradient-to-b from-primary-light to-base">
+        <section className="pt-20 pb-8 px-4 bg-gradient-to-b from-primary-light to-base">
           <div className="max-w-6xl mx-auto text-center">
             <h1 className="font-heading font-bold text-[28px] md:text-5xl text-primary-dark leading-tight mb-3">
               出國上網
@@ -72,7 +72,7 @@ export default async function Home() {
         </section>
 
         {/* ===== Section 2: Popular Countries ===== */}
-        <section id="search" className="py-12 px-4 scroll-mt-16">
+        <section id="search" className="pt-8 pb-12 px-4 scroll-mt-16">
           <div className="max-w-6xl mx-auto">
             <h2 className="font-heading font-semibold text-[22px] md:text-4xl text-text-primary text-center mb-8">
               熱門目的地
