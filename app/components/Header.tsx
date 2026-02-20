@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { Wifi } from "lucide-react";
+import ThemeToggle from "./ThemeToggle";
 
 export default function Header() {
   return (
@@ -13,12 +14,15 @@ export default function Header() {
             Roava eSIM
           </span>
         </Link>
-        <Link
-          href="/install-guide"
-          className="text-sm font-medium text-text-secondary hover:text-primary transition-colors duration-200 cursor-pointer"
-        >
-          安裝教學
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/install-guide"
+            className="text-sm font-medium text-text-secondary hover:text-primary transition-colors duration-200 cursor-pointer"
+          >
+            安裝教學
+          </Link>
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   );

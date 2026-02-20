@@ -24,6 +24,24 @@
   --font-body: 'DM Sans', 'Noto Sans TC', sans-serif;
 }
 
+/* ===== Dark Mode Overrides ===== */
+.dark {
+  --color-primary: #38BDF8;
+  --color-primary-dark: #7DD3FC;
+  --color-primary-light: #0C2D48;
+  --color-cta: #FB923C;
+  --color-cta-hover: #F97316;
+  --color-surface: #1E293B;
+  --color-base: #0F172A;
+  --color-text-primary: #F1F5F9;
+  --color-text-secondary: #94A3B8;
+  --color-text-muted: #64748B;
+  --color-border-default: #334155;
+  --color-success: #4ADE80;
+  --color-error: #F87171;
+  --color-line-green: #06C755;
+}
+
 /* Global resets for mobile */
 * {
   touch-action: manipulation;
