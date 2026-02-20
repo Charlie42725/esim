@@ -94,7 +94,7 @@ export default function InstallGuidePage() {
           {/* CTA */}
           <div className="mt-8 text-center">
             <Link
-              href="/#countries"
+              href="/#search"
               className="inline-flex items-center justify-center gap-2 w-full max-w-sm h-14 bg-cta hover:bg-cta-hover text-white text-base font-bold rounded-xl transition-colors duration-200 cursor-pointer"
             >
               立即選購 eSIM

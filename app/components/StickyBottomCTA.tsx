@@ -26,7 +26,7 @@ export default function StickyBottomCTA() {
           <span className="text-text-secondary"> 起</span>
         </div>
         <Link
-          href="#countries"
+          href="#search"
           className="flex-shrink-0 flex items-center justify-center gap-1 h-12 px-6 bg-cta hover:bg-cta-hover active:bg-cta-hover text-white text-base font-bold rounded-xl transition-colors duration-200 cursor-pointer"
         >
           立即選購

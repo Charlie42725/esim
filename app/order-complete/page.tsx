@@ -64,7 +64,7 @@ function OrderCompleteContent() {
           {/* QR Code card */}
           <div className="bg-surface rounded-2xl p-6 border border-border-default shadow-sm text-center mb-6">
             {/* Placeholder QR Code */}
-            <div className="w-[200px] h-[200px] mx-auto mb-4 bg-text-primary rounded-xl flex items-center justify-center">
+            <div className="w-[200px] h-[200px] mx-auto mb-4 bg-[#0F172A] rounded-xl flex items-center justify-center">
               <div className="grid grid-cols-5 gap-1 p-4">
                 {Array.from({ length: 25 }).map((_, i) => (
                   <div
@@ -72,7 +72,7 @@ function OrderCompleteContent() {
                     className={`w-6 h-6 rounded-sm ${
                       [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24].includes(i)
                         ? "bg-white"
-                        : "bg-text-primary"
+                        : "bg-[#0F172A]"
                     }`}
                   />
                 ))}

@@ -232,13 +232,13 @@ function CheckoutContent() {
             />
             <span className="text-sm text-text-secondary leading-relaxed">
               我同意
-              <a href="#" className="text-primary underline mx-0.5">
+              <Link href="/terms" target="_blank" className="text-primary underline mx-0.5">
                 服務條款
-              </a>
+              </Link>
               及
-              <a href="#" className="text-primary underline mx-0.5">
+              <Link href="/privacy" target="_blank" className="text-primary underline mx-0.5">
                 隱私政策
-              </a>
+              </Link>
             </span>
           </label>
 
