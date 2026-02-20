@@ -54,9 +54,9 @@ export default async function Home() {
               免換卡・掃碼即用・日韓東南亞超過 50 國
             </p>
 
-            {/* Search box CTA */}
+            {/* Search box CTA — clicks scroll to real search */}
             <Link
-              href="#countries"
+              href="#search"
               className="group flex items-center gap-3 w-full max-w-md mx-auto h-14 px-4 bg-surface rounded-xl border border-border-default hover:border-primary shadow-sm transition-all duration-200 cursor-pointer"
             >
               <Search className="w-5 h-5 text-text-muted group-hover:text-primary transition-colors" />
@@ -83,7 +83,7 @@ export default async function Home() {
         </section>
 
         {/* ===== Section 2: Popular Countries ===== */}
-        <section id="countries" className="py-12 px-4 scroll-mt-16">
+        <section id="search" className="py-12 px-4 scroll-mt-16">
           <div className="max-w-6xl mx-auto">
             <h2 className="font-heading font-semibold text-[22px] md:text-4xl text-text-primary text-center mb-8">
               熱門目的地
@@ -128,7 +128,7 @@ export default async function Home() {
             <StepFlow />
             <div className="mt-10 flex justify-center">
               <Link
-                href="#countries"
+                href="#search"
                 className="flex items-center justify-center gap-2 w-full max-w-sm h-14 bg-cta hover:bg-cta-hover active:bg-cta-hover text-white text-base font-bold rounded-xl transition-colors duration-200 cursor-pointer"
               >
                 立即選購 eSIM
@@ -182,7 +182,7 @@ export default async function Home() {
               選好國家，3 分鐘搞定上網
             </p>
             <Link
-              href="#countries"
+              href="#search"
               className="inline-flex items-center justify-center gap-2 w-full max-w-sm h-14 bg-cta hover:bg-cta-hover active:bg-cta-hover text-white text-base font-bold rounded-xl transition-colors duration-200 cursor-pointer"
             >
               立即選購 eSIM
