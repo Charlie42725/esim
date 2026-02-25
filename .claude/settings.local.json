@@ -13,7 +13,17 @@
       "Bash(node scripts/check-continents.mjs:*)",
       "Bash(kill:*)",
       "Bash(node scripts/check-au.mjs:*)",
-      "Bash(node scripts/analyze-variants.mjs:*)"
+      "Bash(node scripts/analyze-variants.mjs:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(head:*)",
+      "Bash(apt list --installed)",
+      "Bash(dpkg -l)",
+      "Bash(npx pdf-parse \"/mnt/c/Users/linei/Desktop/coding/esim/API串接/途鸽科技-eSIM业务API文档_2.0_ZH.pdf\" 2>/dev/null || node -e \"\nconst pdf = require\\('pdf-parse'\\);\nconst fs = require\\('fs'\\);\nconst buf = fs.readFileSync\\('/mnt/c/Users/linei/Desktop/coding/esim/API串接/途鸽科技-eSIM业务API文档_2.0_ZH.pdf'\\);\npdf\\(buf\\).then\\(data => {\n    console.log\\('Pages:', data.numpages\\);\n    console.log\\('---'\\);\n    console.log\\(data.text\\);\n}\\).catch\\(err => console.error\\(err\\)\\);\n\" 2>&1)",
+      "Bash(pip3 install:*)",
+      "Bash(ls:*)",
+      "Bash(ls /tmp/tuge* 2>/dev/null && grep -l \"Roava\\\\|roava\" /tmp/*.txt 2>/dev/null)",
+      "Bash(apt list:*)",
+      "Bash(npx pdf-parse:*)"
     ]
   }
 }

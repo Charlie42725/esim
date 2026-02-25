@@ -20,6 +20,7 @@ export interface EcpayOrderParams {
   totalAmount: number;   // NTD 整數
   itemName: string;      // 商品名稱
   email: string;
+  productCode: string;   // 途鸽 productCode（存到 CustomField2）
 }
 
 // --- Helper: Generate CheckMacValue ---
@@ -72,6 +73,7 @@ export function buildEcpayForm(order: EcpayOrderParams): {
     EncryptType: "1",
     OrderResultURL: `${baseUrl}/api/ecpay/result`,
     CustomField1: order.email,
+    CustomField2: order.productCode,
   };
 
   params.CheckMacValue = generateCheckMac(params);

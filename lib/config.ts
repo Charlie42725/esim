@@ -1,12 +1,13 @@
 export const config = {
-  esim: {
-    apiKey: process.env.ESIM_API_KEY || "",
+  tuge: {
+    accountId: process.env.TUGE_ACCOUNT_ID || "",
+    secret: process.env.TUGE_SECRET || "",
     baseUrl:
-      process.env.ESIM_API_BASE_URL ||
-      "https://partner.weroam.xyz/api/v1",
+      process.env.TUGE_BASE_URL ||
+      "https://enterpriseapisandbox.tugegroup.com:8070/openapi",
   },
 } as const;
 
-export function isApiConfigured(): boolean {
-  return config.esim.apiKey.length > 0;
+export function isTugeConfigured(): boolean {
+  return config.tuge.accountId.length > 0 && config.tuge.secret.length > 0;
 }

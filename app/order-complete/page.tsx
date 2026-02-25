@@ -2,7 +2,7 @@
 
 import { Suspense, useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, ArrowRight, Download, MessageCircle } from "lucide-react";
+import { Check, ArrowRight, MessageCircle } from "lucide-react";
 import Link from "next/link";
 import Header from "@/app/components/Header";
 import type { Country } from "@/lib/data";
@@ -61,24 +61,8 @@ function OrderCompleteContent() {
             </h1>
           </div>
 
-          {/* QR Code card */}
+          {/* Order info card */}
           <div className="bg-surface rounded-2xl p-6 border border-border-default shadow-sm text-center mb-6">
-            {/* Placeholder QR Code */}
-            <div className="w-[200px] h-[200px] mx-auto mb-4 bg-[#0F172A] rounded-xl flex items-center justify-center">
-              <div className="grid grid-cols-5 gap-1 p-4">
-                {Array.from({ length: 25 }).map((_, i) => (
-                  <div
-                    key={i}
-                    className={`w-6 h-6 rounded-sm ${
-                      [0, 1, 2, 3, 4, 5, 9, 10, 14, 15, 19, 20, 21, 22, 23, 24].includes(i)
-                        ? "bg-white"
-                        : "bg-[#0F172A]"
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
             {plan && country && (
               <>
                 <h2 className="font-heading font-semibold text-lg text-text-primary mb-1">
@@ -92,7 +76,22 @@ function OrderCompleteContent() {
             )}
           </div>
 
-          {/* Action buttons */}
+          {/* Email confirmation — QR Code 由途鸽寄送 */}
+          <div className="bg-primary-light rounded-xl p-5 text-center mb-6">
+            <p className="text-lg font-semibold text-text-primary mb-1">
+              QR Code 已寄送到您的 Email 信箱
+            </p>
+            {email && (
+              <p className="text-base text-text-secondary">
+                {decodeURIComponent(email)}
+              </p>
+            )}
+            <p className="text-sm text-text-muted mt-2">
+              請查收信件（含垃圾郵件匣），依照信中指示掃描 QR Code 安裝 eSIM。
+            </p>
+          </div>
+
+          {/* Action button */}
           <div className="space-y-3 mb-8">
             <Link
               href="/install-guide"
@@ -101,26 +100,7 @@ function OrderCompleteContent() {
               查看安裝教學
               <ArrowRight className="w-5 h-5" />
             </Link>
-            <button
-              type="button"
-              className="flex items-center justify-center gap-2 w-full h-12 border-2 border-primary text-primary font-bold rounded-xl hover:bg-primary hover:text-white transition-colors duration-200 cursor-pointer"
-            >
-              <Download className="w-5 h-5" />
-              下載 QR Code 圖片
-            </button>
           </div>
-
-          {/* Email confirmation */}
-          {email && (
-            <div className="bg-primary-light rounded-xl p-4 text-center mb-8">
-              <p className="text-sm text-text-secondary">
-                QR Code 已寄送至
-              </p>
-              <p className="text-base font-semibold text-text-primary mt-0.5">
-                {decodeURIComponent(email)}
-              </p>
-            </div>
-          )}
 
           {/* Next steps */}
           <div className="mb-8">
@@ -131,7 +111,7 @@ function OrderCompleteContent() {
               {[
                 "到手機「設定」>「行動網路」",
                 "選擇「新增 eSIM」",
-                "掃描上方 QR Code",
+                "掃描 Email 中的 QR Code",
                 "到達目的地後開啟 eSIM 線路",
               ].map((step, i) => (
                 <li key={i} className="flex items-start gap-3">

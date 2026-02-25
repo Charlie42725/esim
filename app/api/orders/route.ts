@@ -1,46 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { createOrder } from "@/lib/api";
-import { isApiConfigured } from "@/lib/config";
+import { NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { productCode, quantity, expectedPrice, email } = body;
-
-    if (!productCode || !email) {
-      return NextResponse.json(
-        { success: false, error: { code: "INVALID_INPUT", message: "Missing productCode or email" } },
-        { status: 400 }
-      );
-    }
-
-    if (!isApiConfigured()) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          order: {
-            orderId: `MOCK-${Date.now()}`,
-            status: "completed",
-            items: [],
-          },
-        },
-      });
-    }
-
-    const result = await createOrder(productCode, quantity || 1, expectedPrice || 0);
-
-    if (!result.success) {
-      return NextResponse.json(
-        { success: false, error: result.error },
-        { status: 502 }
-      );
-    }
-
-    return NextResponse.json(result);
-  } catch {
-    return NextResponse.json(
-      { success: false, error: { code: "INTERNAL", message: "Failed to create order" } },
-      { status: 500 }
-    );
-  }
+// 下單流程已移至 ECPay notify 回調中自動觸發途鸽下單
+// 此 route 保留作為未來途鸽訂單查詢用途
+export async function POST() {
+  return NextResponse.json(
+    {
+      success: false,
+      error: {
+        code: "DEPRECATED",
+        message: "Order creation is now handled via ECPay payment flow",
+      },
+    },
+    { status: 410 }
+  );
 }

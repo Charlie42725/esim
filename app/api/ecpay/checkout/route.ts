@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
       totalAmount: Math.round(amount),
       itemName: productName || "eSIM 方案",
       email,
+      productCode,
     };
 
     const form = buildEcpayForm(order);

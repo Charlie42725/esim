@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyEcpayCallback } from "@/lib/ecpay";
-import { createOrder } from "@/lib/api";
+import { createTugeOrder } from "@/lib/api";
+import { randomUUID } from "crypto";
 
 // ECPay server-to-server payment notification (ReturnURL)
 export async function POST(request: NextRequest) {
@@ -18,14 +19,30 @@ export async function POST(request: NextRequest) {
 
     const rtnCode = params.RtnCode;
     const tradeNo = params.MerchantTradeNo;
+    const email = params.CustomField1 || "";
+    const productCode = params.CustomField2 || "";
 
     if (rtnCode === "1") {
-      // Payment successful — create eSIM order via weroam API
-      // TODO: Look up productCode and email from your database using tradeNo
-      // For now we log it; in production, store order mapping in DB
-      console.log(`[ECPay] Payment success for trade: ${tradeNo}`);
+      // Payment successful — create eSIM order via TuGe API
+      console.log(`[ECPay] Payment success for trade: ${tradeNo}, email: ${email}, productCode: ${productCode}`);
 
-      // Example: await createOrder(productCode, 1, expectedPrice);
+      if (productCode && email) {
+        const idempotencyKey = randomUUID();
+        const result = await createTugeOrder(
+          productCode,
+          email,
+          tradeNo,
+          idempotencyKey
+        );
+
+        if (result.success) {
+          console.log(`[TuGe] Order created: ${result.orderNo} for trade: ${tradeNo}`);
+        } else {
+          console.error(`[TuGe] Order failed for trade ${tradeNo}:`, result.error);
+        }
+      } else {
+        console.warn(`[ECPay] Missing productCode or email for trade: ${tradeNo}`);
+      }
     } else {
       console.log(`[ECPay] Payment failed for trade: ${tradeNo}, code: ${rtnCode}`);
     }

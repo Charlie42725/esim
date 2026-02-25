@@ -1,302 +1,125 @@
 import "server-only";
-import { config, isApiConfigured } from "./config";
-import { getFallbackCountries, type Country, type Plan } from "./data";
-import {
-  getContinent, getCountryNameZh, detectMultiInfo, isMultiCountry,
-  getCountryPopularity, getPackagePopularity,
-} from "./continents";
+import { config, isTugeConfigured } from "./config";
+import { getStaticCountries, type Country } from "./data";
 
-// --- API response types (matching weroam API docs) ---
+// ---------------------------------------------------------------------------
+// 途鸽 (TuGe) API Client
+// ---------------------------------------------------------------------------
 
-interface ApiEnvelope<T> {
+// --- Token 快取（記憶體內，24h 有效）---
+
+let cachedToken: string | null = null;
+let tokenExpiresAt = 0; // Unix ms
+
+/**
+ * 取得途鸽 access token（POST /oauth/token）
+ * 回傳的 token 有效期 24 小時，這裡用記憶體快取，提前 5 分鐘刷新。
+ */
+export async function getToken(): Promise<string> {
+  // 若快取中的 token 還有超過 5 分鐘有效期，直接回傳
+  if (cachedToken && Date.now() < tokenExpiresAt - 5 * 60 * 1000) {
+    return cachedToken;
+  }
+
+  const url = `${config.tuge.baseUrl}/oauth/token`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json; charset=UTF-8" },
+    body: JSON.stringify({
+      accountId: config.tuge.accountId,
+      secret: config.tuge.secret,
+    }),
+    cache: "no-store",
+  });
+
+  if (!res.ok) {
+    throw new Error(`[TuGe] Failed to get token: HTTP ${res.status}`);
+  }
+
+  const json = await res.json();
+  if (json.code !== "0000" || !json.data?.token) {
+    throw new Error(`[TuGe] Token error: ${json.msg || JSON.stringify(json)}`);
+  }
+
+  const token: string = json.data.token;
+  cachedToken = token;
+  // expires 是秒數（預設 86400 = 24h）
+  const expiresSec = json.data.expires || 86400;
+  tokenExpiresAt = Date.now() + expiresSec * 1000;
+
+  return token;
+}
+
+// --- 下單 API ---
+
+export interface TugeOrderResult {
   success: boolean;
-  data?: T;
-  error?: { code: string; message: string };
+  orderNo?: string;
+  error?: string;
 }
 
-interface ApiProduct {
-  code: string;
-  name: string;
-  price: number; // USD cents (wholesale)
-  retailPrice: number; // USD cents (suggested retail)
-  currency: string;
-  dataBytes: number;
-  duration: { amount: number; unit: string };
-  region: string;
-  coverage_areas: string[];
-  speed: string;
-  networkType: string;
-  activationMethod: string;
-  locationNetworkList: {
-    locationCode: string;
-    locationName: string;
-    locationLogo: string;
-    operatorList: { operatorName: string; networkType: string }[];
-  }[];
-}
+/**
+ * 途鸽下單 — POST /eSIMApi/v2/order/create
+ *
+ * @param productCode  途鸽產品編碼
+ * @param email        客戶 email（途鸽會寄 QR code）
+ * @param channelOrderNo  渠道訂單號（我們的 tradeNo）
+ * @param idempotencyKey  冪等 key（UUID v4）
+ */
+export async function createTugeOrder(
+  productCode: string,
+  email: string,
+  channelOrderNo: string,
+  idempotencyKey: string
+): Promise<TugeOrderResult> {
+  if (!isTugeConfigured()) {
+    console.warn("[TuGe] Not configured, skipping order creation");
+    return { success: false, error: "TuGe API not configured" };
+  }
 
-interface ApiProductsResponse {
-  products: ApiProduct[];
-  pagination: { total: number; page: number; perPage: number; totalPages: number };
-}
+  const token = await getToken();
+  const url = `${config.tuge.baseUrl}/eSIMApi/v2/order/create`;
 
-interface ApiOrder {
-  orderId: string;
-  status: string;
-  totalAmount: number;
-  currency: string;
-  items: {
-    productCode: string;
-    productName: string;
-    quantity: number;
-    unitPrice: number;
-    totalPrice: number;
-    status: string;
-    esimProfiles?: {
-      iccid: string;
-      qrCodeUrl: string;
-      activationCode: string;
-      expiresAt: string;
-    }[];
-  }[];
-  [key: string]: unknown;
-}
-
-interface ApiOrderCreateResponse {
-  order: ApiOrder;
-}
-
-// --- Low-level fetch helpers ---
-
-async function apiPost<T>(
-  endpoint: string,
-  body?: Record<string, unknown>
-): Promise<ApiEnvelope<T>> {
-  const url = `${config.esim.baseUrl}${endpoint}`;
   const res = await fetch(url, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
-      "X-API-Key": config.esim.apiKey,
+      "Content-Type": "application/json; charset=UTF-8",
+      Authorization: `Bearer ${token}`,
     },
-    body: body ? JSON.stringify(body) : undefined,
-    next: { revalidate: 300 },
+    body: JSON.stringify({
+      productCode,
+      email,
+      channelOrderNo,
+      idempotencyKey,
+    }),
+    cache: "no-store",
   });
 
   if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    return {
-      success: false,
-      error: err?.error || { code: "HTTP_ERROR", message: `HTTP ${res.status}` },
-    };
+    const text = await res.text().catch(() => "");
+    console.error(`[TuGe] Order API HTTP ${res.status}:`, text);
+    return { success: false, error: `HTTP ${res.status}` };
   }
 
-  return res.json();
-}
+  const json = await res.json();
+  console.log("[TuGe] Order response:", JSON.stringify(json));
 
-async function apiGet<T>(endpoint: string): Promise<ApiEnvelope<T>> {
-  const url = `${config.esim.baseUrl}${endpoint}`;
-  const res = await fetch(url, {
-    headers: { "X-API-Key": config.esim.apiKey },
-    next: { revalidate: 300 },
-  });
-
-  if (!res.ok) {
-    const err = await res.json().catch(() => null);
-    return {
-      success: false,
-      error: err?.error || { code: "HTTP_ERROR", message: `HTTP ${res.status}` },
-    };
+  if (json.code === "0000" && json.data?.orderNo) {
+    return { success: true, orderNo: json.data.orderNo };
   }
 
-  return res.json();
+  return {
+    success: false,
+    error: `${json.code}: ${json.msg || "Unknown error"}`,
+  };
 }
 
-// --- Product fetching ---
-
-export async function fetchProducts(
-  regionCode?: string,
-  page = 1,
-  perPage = 100
-): Promise<ApiEnvelope<ApiProductsResponse>> {
-  const body: Record<string, unknown> = { page, perPage };
-  if (regionCode) body.regionCode = regionCode;
-  return apiPost<ApiProductsResponse>("/products/list", body);
-}
-
-// --- Order creation ---
-
-export async function createOrder(
-  productCode: string,
-  quantity: number,
-  expectedPrice: number
-): Promise<ApiEnvelope<ApiOrderCreateResponse>> {
-  const idempotencyKey = `order-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-  return apiPost<ApiOrderCreateResponse>("/orders/create", {
-    idempotencyKey,
-    products: [{ productCode, quantity, expectedPrice }],
-  });
-}
-
-// --- Order lookup ---
-
-export async function getOrder(
-  orderId: string
-): Promise<ApiEnvelope<{ order: ApiOrder }>> {
-  return apiGet<{ order: ApiOrder }>(`/orders/${orderId}`);
-}
-
-// --- Helpers ---
-
-function regionCodeToFlag(code: string): string {
-  return code
-    .toUpperCase()
-    .split("")
-    .map((c) => String.fromCodePoint(0x1f1e6 + c.charCodeAt(0) - 65))
-    .join("");
-}
-
-function formatDataBytes(bytes: number): string {
-  if (bytes >= 1073741824) {
-    const gb = bytes / 1073741824;
-    return gb % 1 === 0 ? `${gb}GB` : `${gb.toFixed(1)}GB`;
-  }
-  const mb = bytes / 1048576;
-  return mb % 1 === 0 ? `${mb}MB` : `${mb.toFixed(0)}MB`;
-}
-
-// --- Data mapping: API products → Country/Plan ---
-
-// USD cents → NTD (approximate, configurable)
-const USD_TO_NTD = 32;
-
-function centsToNTD(usdCents: number): number {
-  return Math.round((usdCents / 100) * USD_TO_NTD);
-}
-
-/** Generate a Chinese plan name from data + days, e.g. "3GB / 15天" */
-function formatPlanNameZh(dataStr: string, days: number): string {
-  return `${dataStr} / ${days}天`;
-}
-
-/** Detect variant type from product name */
-function detectVariant(productName: string): {
-  variant: "standard" | "nonhkip" | "iij" | "premium";
-  variantLabel: string;
-  variantDesc: string;
-} {
-  if (/\(nonhkip\)/i.test(productName)) {
-    return { variant: "nonhkip", variantLabel: "直連 IP", variantDesc: "當地 IP 出口，非香港中轉" };
-  }
-  if (/\(IIJ\)/i.test(productName)) {
-    return { variant: "iij", variantLabel: "IIJ 線路", variantDesc: "IIJ Docomo 網路" };
-  }
-  if (/premium/i.test(productName)) {
-    return { variant: "premium", variantLabel: "Premium 高速", variantDesc: "高速優質網路" };
-  }
-  return { variant: "standard", variantLabel: "標準線路", variantDesc: "經濟實惠" };
-}
-
-function mapProductsToCountries(products: ApiProduct[]): Country[] {
-  const countryMap = new Map<string, Country>();
-
-  for (const p of products) {
-    const region = p.region;
-    const regionKey = region.toLowerCase();
-    const multi = isMultiCountry(regionKey);
-
-    const dataStr = formatDataBytes(p.dataBytes);
-    const { variant, variantLabel, variantDesc } = detectVariant(p.name);
-    const plan: Plan = {
-      id: p.code,
-      name: formatPlanNameZh(dataStr, p.duration.amount),
-      days: p.duration.amount,
-      data: dataStr,
-      price: centsToNTD(p.retailPrice),
-      variant,
-      variantLabel,
-      variantDesc,
-    };
-
-    // For multi-country: derive short slug from product name prefix
-    // e.g. "Asia (12 areas) 1GB 7Days" → "asia-12-areas"
-    const slug = multi
-      ? p.name.replace(/\s*\d+\s*(GB|MB|Day|day).*/i, "").trim()
-          .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/-+$/, "")
-      : regionKey;
-    const existing = countryMap.get(slug);
-
-    if (existing) {
-      existing.plans.push(plan);
-    } else {
-      const multiInfo = multi ? detectMultiInfo(p.name) : null;
-      const continent = multiInfo ? multiInfo.continent : getContinent(region);
-
-      countryMap.set(slug, {
-        slug,
-        name: multi
-          ? multiInfo!.nameZh
-          : getCountryNameZh(region),
-        flag: multi ? "multi" : region.toLowerCase(),
-        startingPrice: plan.price,
-        continent,
-        plans: [plan],
-      });
-    }
-  }
-
-  // Update startingPrice to the minimum plan price
-  for (const country of countryMap.values()) {
-    country.plans.sort((a, b) => a.price - b.price);
-    country.startingPrice = country.plans[0].price;
-  }
-
-  // Sort by popularity (single countries by travel popularity, packages by defined order)
-  const result = Array.from(countryMap.values());
-  result.sort((a, b) => {
-    const aIsMulti = a.continent === "multi";
-    const bIsMulti = b.continent === "multi";
-    if (aIsMulti && bIsMulti) {
-      return getPackagePopularity(a.slug) - getPackagePopularity(b.slug);
-    }
-    if (aIsMulti !== bIsMulti) return aIsMulti ? 1 : -1; // packages after countries
-    // Same continent: sort by popularity
-    return getCountryPopularity(a.slug.toUpperCase()) - getCountryPopularity(b.slug.toUpperCase());
-  });
-
-  return result;
-}
-
-// --- Public data accessors (with fallback) ---
-
-async function fetchAllProducts(): Promise<ApiProduct[]> {
-  const all: ApiProduct[] = [];
-  let page = 1;
-  while (true) {
-    const res = await fetchProducts(undefined, page, 100);
-    if (!res.success || !res.data) break;
-    all.push(...res.data.products);
-    if (page >= res.data.pagination.totalPages) break;
-    page++;
-  }
-  return all;
-}
+// ---------------------------------------------------------------------------
+// 靜態資料存取（給前端 / 頁面用）
+// ---------------------------------------------------------------------------
 
 export async function getCountries(): Promise<Country[]> {
-  if (!isApiConfigured()) {
-    return getFallbackCountries();
-  }
-
-  try {
-    const products = await fetchAllProducts();
-    if (products.length > 0) {
-      return mapProductsToCountries(products);
-    }
-  } catch {
-    // API unreachable — fall through to fallback
-  }
-
-  return getFallbackCountries();
+  return getStaticCountries();
 }
 
 export async function getCountryBySlugFromApi(
