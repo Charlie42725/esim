@@ -19,6 +19,9 @@ export interface Plan {
   variant: "standard" | "nonhkip" | "iij" | "premium";
   variantLabel: string;
   variantDesc: string;
+  dataType: "unlimited-throttle" | "unlimited" | "fixed";
+  networkType: "native" | "roaming";
+  networkDesc: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -37,6 +40,10 @@ export interface StaticProduct {
   description?: string;  // 選填備註（降速說明等）
   flag?: string;         // 國旗代碼，單國不填會自動用 country；多國填 "multi"
   continent?: string;    // 多國套餐需手動指定，如 "multi"、"asia" 等
+  dataType?: "unlimited-throttle" | "unlimited" | "fixed";
+  //         吃到飽(降速)           不降速吃到飽     固定流量
+  networkType?: "native" | "roaming";  // 原生 | 漫遊（C4=漫遊, I2=原生）
+  networkDesc?: string;                // 電信商名，如 "NTT DoCoMo"
 }
 
 // ============================================================================
@@ -54,6 +61,9 @@ export const staticProducts: StaticProduct[] = [
     days: 5,
     price: 159,
     description: "每日 500MB 高速，用完降速 512kbps",
+    dataType: "unlimited-throttle",
+    networkType: "roaming",
+    networkDesc: "NTT DoCoMo",
   },
   {
     productCode: "A-002-ES-ZD-C4-6D/60D-500MB",
@@ -63,6 +73,9 @@ export const staticProducts: StaticProduct[] = [
     days: 6,
     price: 189,
     description: "每日 500MB 高速，用完降速 512kbps",
+    dataType: "unlimited-throttle",
+    networkType: "roaming",
+    networkDesc: "NTT DoCoMo",
   },
 
   // ===== 泰國（單國）=====
@@ -332,6 +345,9 @@ export function getStaticCountries(): Country[] {
       variant: "standard",
       variantLabel: "標準",
       variantDesc: p.description || "",
+      dataType: p.dataType || "unlimited-throttle",
+      networkType: p.networkType || "native",
+      networkDesc: p.networkDesc || "",
     };
 
     const existing = countryMap.get(slug);
